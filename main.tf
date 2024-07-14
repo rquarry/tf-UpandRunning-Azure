@@ -50,7 +50,6 @@ resource "azurerm_network_interface" "example" {
     name                          = "internal"
     subnet_id                     = azurerm_subnet.example.id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.vmip.id
   }
 }
 
@@ -125,6 +124,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
       name = "internal"
       primary = true
       subnet_id = azurerm_subnet.example.id
+      load_balancer_backend_address_pool_ids = [ azurerm_lb_backend_address_pool.example.id ]
     }
   }
 
@@ -165,3 +165,18 @@ SETTINGS
 ### END OF COMPUTE SECTION
 
 
+resource "azurerm_lb" "example" {
+  name                = "HTTPLoadBalancer"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+
+  frontend_ip_configuration {
+    name                 = "PublicIPAddress"
+    public_ip_address_id = azurerm_public_ip.vmip.id
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "example" {
+  loadbalancer_id                = azurerm_lb.example.id
+  name                           = "HTTPApplicationPool"
+}

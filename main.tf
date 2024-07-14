@@ -107,15 +107,23 @@ resource "azurerm_subnet_network_security_group_association" "nsga" {
   network_security_group_id     = azurerm_network_security_group.networksg.id
 }
 
-resource "azurerm_linux_virtual_machine" "example" {
+resource "azurerm_linux_virtual_machine_scale_set" "example" {
   name                = "example-machine"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  size                = "Standard_F2"
+  sku                = "Standard_F2"
+  instances          = 2
   admin_username      = "adminuser"
-  network_interface_ids = [
-    azurerm_network_interface.example.id,
-  ]
+  network_interface {
+    name = azurerm_network_interface.example.name
+    primary = true
+  
+    ip_configuration {
+      name = "internal"
+      primary = true
+      subnet_id = azurerm_subnet.example.id
+    }
+  }
 
   admin_ssh_key {
     username   = "adminuser"
@@ -136,9 +144,9 @@ resource "azurerm_linux_virtual_machine" "example" {
 
 }
 
-resource "azurerm_virtual_machine_extension" "httpcmd" {
+resource "azurerm_virtual_machine_scale_set_extension" "httpcmd" {
   name        = "busyboxhttpd"
-  virtual_machine_id  = azurerm_linux_virtual_machine.example.id
+  virtual_machine_scale_set_id  = azurerm_linux_virtual_machine_scale_set.example.id
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
   type_handler_version = "2.0"

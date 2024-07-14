@@ -21,9 +21,9 @@ resource "azurerm_resource_group" "rg" {
 
 resource "azurerm_virtual_network" "example" {
   name                = "example-network"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  address_space       = ["10.0.0.0/16"]
 }
 
 resource "azurerm_subnet" "example" {
@@ -35,7 +35,7 @@ resource "azurerm_subnet" "example" {
 
 resource "azurerm_public_ip" "vmip" {
   name                = "pubip"
-  resource_group_name = "testRG"
+  resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   allocation_method   = "Static"
 
@@ -43,8 +43,8 @@ resource "azurerm_public_ip" "vmip" {
 
 resource "azurerm_network_interface" "example" {
   name                = "example-nic"
-  location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
 
   ip_configuration {
     name                          = "internal"
@@ -59,6 +59,7 @@ resource "azurerm_network_security_group" "networksg" {
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
+  # SSH
   security_rule {
     name                       = "SSH"
     priority                   = 1001
@@ -84,9 +85,8 @@ resource "azurerm_network_security_group" "networksg" {
     destination_address_prefix = "*"
   }
 
-  #for web
+  # Web
 
-  # RDP
   security_rule {
     name                       = "HTTP"
     priority                   = 1010
@@ -107,13 +107,16 @@ resource "azurerm_subnet_network_security_group_association" "nsga" {
   network_security_group_id     = azurerm_network_security_group.networksg.id
 }
 
+### END OF NETWORK SECTION ####################################################
+
 resource "azurerm_linux_virtual_machine_scale_set" "example" {
   name                = "example-machine"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   sku                = "Standard_F2"
-  instances          = 2
+  instances          = 3
   admin_username      = "adminuser"
+
   network_interface {
     name = azurerm_network_interface.example.name
     primary = true
@@ -158,3 +161,7 @@ resource "azurerm_virtual_machine_scale_set_extension" "httpcmd" {
 SETTINGS
   
 }
+
+### END OF COMPUTE SECTION
+
+

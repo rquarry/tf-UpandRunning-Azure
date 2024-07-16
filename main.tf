@@ -111,7 +111,7 @@ resource "azurerm_nat_gateway_public_ip_association" "my_nat_pubIP" {
 }
 
 # NICS
-resource "azurerm_network_interface" "example" {
+resource "azurerm_network_interface" "az_nic" {
   count               = 3
   name                = "example-nic${count.index}"
   resource_group_name = azurerm_resource_group.rg.name
@@ -121,6 +121,7 @@ resource "azurerm_network_interface" "example" {
     name                          = "internal${count.index}"
     subnet_id                     = azurerm_subnet.example.id
     private_ip_address_allocation = "Dynamic"
+    primary                       = true
   }
 }
 ### END OF NETWORK SECTION ####################################################
@@ -188,13 +189,14 @@ resource "azurerm_lb" "example" {
 
   frontend_ip_configuration {
     name                 = "PublicIPAddress"
-    public_ip_address_id = azurerm_public_ip.vmip.id
+    public_ip_address_id = azurerm_public_ip.vmip[1].id
   }
 }
 
+# assocaiate NICS with address pool
 resource "azurerm_network_interface_backend_address_pool_association" "example" {
   count                   = 3
-  network_interface_id    = azurerm_network_interface.example[count.index].id
+  network_interface_id    = azurerm_network_interface.az_nic[count.index].id
   ip_configuration_name = "internal${count.index}"
   backend_address_pool_id = azurerm_lb_backend_address_pool.example.id 
 }
@@ -211,4 +213,6 @@ resource "azurerm_lb_rule" "example" {
   frontend_port                  = var.http_server_port
   backend_port                   = var.http_server_port
   frontend_ip_configuration_name = "PublicIPAddress"
+  disable_outbound_snat = true
+  backend_address_pool_ids = [azurerm_lb_backend_address_pool.example.id]
 }

@@ -33,19 +33,6 @@ resource "azurerm_subnet" "example" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-resource "azurerm_network_interface" "example" {
-  count               = 3
-  name                = "example-nic${count.index}"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-
-  ip_configuration {
-    name                          = "internal${count.index}"
-    subnet_id                     = azurerm_subnet.example.id
-    private_ip_address_allocation = "Dynamic"
-  }
-}
-
 resource "azurerm_network_security_group" "networksg" {
   name                = "nsg"
   location            = azurerm_resource_group.rg.location
@@ -110,6 +97,32 @@ resource "azurerm_public_ip" "vmip" {
 
 }
 
+# make NAT gateway for outbound access to internet
+resource "azurerm_nat_gateway" "my_nat" {
+  name                = "natgw"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+# Give nat gateway a public IP
+resource "azurerm_nat_gateway_public_ip_association" "my_nat_pubIP" {
+  nat_gateway_id = azurerm_nat_gateway.my_nat.id
+  public_ip_address_id = azurerm_public_ip.vmip[0].id
+}
+
+# NICS
+resource "azurerm_network_interface" "example" {
+  count               = 3
+  name                = "example-nic${count.index}"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+
+  ip_configuration {
+    name                          = "internal${count.index}"
+    subnet_id                     = azurerm_subnet.example.id
+    private_ip_address_allocation = "Dynamic"
+  }
+}
 ### END OF NETWORK SECTION ####################################################
 
 resource "azurerm_linux_virtual_machine_scale_set" "example" {

@@ -42,12 +42,13 @@ resource "azurerm_public_ip" "vmip" {
 }
 
 resource "azurerm_network_interface" "example" {
-  name                = "example-nic"
+  count               = 3
+  name                = "example-nic${count.index}"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
 
   ip_configuration {
-    name                          = "internal"
+    name                          = "internal${count.index}"
     subnet_id                     = azurerm_subnet.example.id
     private_ip_address_allocation = "Dynamic"
   }
@@ -117,7 +118,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
   admin_username      = "adminuser"
 
   network_interface {
-    name = azurerm_network_interface.example.name
+    name = "internal_nic"
     primary = true
   
     ip_configuration {
@@ -164,7 +165,6 @@ SETTINGS
 
 ### END OF COMPUTE SECTION
 
-
 resource "azurerm_lb" "example" {
   name                = "HTTPLoadBalancer"
   resource_group_name = azurerm_resource_group.rg.name
@@ -176,7 +176,23 @@ resource "azurerm_lb" "example" {
   }
 }
 
+resource "azurerm_network_interface_backend_address_pool_association" "example" {
+  count                   = 3
+  network_interface_id    = azurerm_network_interface.example[count.index].id
+  ip_configuration_name = "internal${count.index}"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.example.id 
+}
+
 resource "azurerm_lb_backend_address_pool" "example" {
   loadbalancer_id                = azurerm_lb.example.id
   name                           = "HTTPApplicationPool"
+}
+
+resource "azurerm_lb_rule" "example" {
+  loadbalancer_id                = azurerm_lb.example.id
+  name                           = "LBRule"
+  protocol                       = "Tcp"
+  frontend_port                  = var.http_server_port
+  backend_port                   = var.http_server_port
+  frontend_ip_configuration_name = "PublicIPAddress"
 }

@@ -33,14 +33,6 @@ resource "azurerm_subnet" "example" {
   address_prefixes     = ["10.0.2.0/24"]
 }
 
-resource "azurerm_public_ip" "vmip" {
-  name                = "pubip"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  allocation_method   = "Static"
-
-}
-
 resource "azurerm_network_interface" "example" {
   count               = 3
   name                = "example-nic${count.index}"
@@ -105,6 +97,17 @@ resource "azurerm_network_security_group" "networksg" {
 resource "azurerm_subnet_network_security_group_association" "nsga" {
   subnet_id                     = azurerm_subnet.example.id
   network_security_group_id     = azurerm_network_security_group.networksg.id
+}
+
+# Make two public IPs, one for lb and one for NAT gateway
+resource "azurerm_public_ip" "vmip" {
+  count               = 2
+  name                = "pubip-${count.index}"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+
 }
 
 ### END OF NETWORK SECTION ####################################################

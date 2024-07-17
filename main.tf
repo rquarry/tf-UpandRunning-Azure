@@ -102,6 +102,7 @@ resource "azurerm_nat_gateway" "my_nat" {
   name                = "natgw"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
+  sku_name                = "Standard"
 }
 
 # Give nat gateway a public IP
@@ -186,6 +187,7 @@ resource "azurerm_lb" "example" {
   name                = "HTTPLoadBalancer"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
+  sku                 = "Standard"
 
   frontend_ip_configuration {
     name                 = "PublicIPAddress"

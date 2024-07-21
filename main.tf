@@ -144,6 +144,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
       primary = true
       subnet_id = azurerm_subnet.example.id
       load_balancer_backend_address_pool_ids = [ azurerm_lb_backend_address_pool.example.id ]
+
     }
   }
 
@@ -195,17 +196,17 @@ resource "azurerm_lb" "example" {
   }
 }
 
+resource "azurerm_lb_backend_address_pool" "example" {
+  loadbalancer_id                = azurerm_lb.example.id
+  name                           = "HTTPApplicationPool"
+}
+
 # assocaiate NICS with address pool
 resource "azurerm_network_interface_backend_address_pool_association" "example" {
   count                   = 3
   network_interface_id    = azurerm_network_interface.az_nic[count.index].id
   ip_configuration_name = "internal${count.index}"
   backend_address_pool_id = azurerm_lb_backend_address_pool.example.id 
-}
-
-resource "azurerm_lb_backend_address_pool" "example" {
-  loadbalancer_id                = azurerm_lb.example.id
-  name                           = "HTTPApplicationPool"
 }
 
 resource "azurerm_lb_rule" "example" {
@@ -217,4 +218,34 @@ resource "azurerm_lb_rule" "example" {
   frontend_ip_configuration_name = "PublicIPAddress"
   disable_outbound_snat = true
   backend_address_pool_ids = [azurerm_lb_backend_address_pool.example.id]
+  # Per the terraform docs, this needs to be added
+  depends_on = [ azurerm_linux_virtual_machine_scale_set.example ]
+}
+
+resource "azurerm_lb_rule" "example2" {
+  loadbalancer_id                = azurerm_lb.example.id
+  name                           = "SSHLBRule"
+  protocol                       = "Tcp"
+  frontend_port                  = 2020
+  backend_port                   = 22
+  frontend_ip_configuration_name = "PublicIPAddress"
+  disable_outbound_snat = true
+  backend_address_pool_ids = [azurerm_lb_backend_address_pool.example.id]
+  # Per the terraform docs, this needs to be added
+  depends_on = [ azurerm_linux_virtual_machine_scale_set.example ]
+}
+
+resource "azurerm_lb_outbound_rule" "default_lboutbound_rule" {
+  name                            = "OutboundRule"
+  loadbalancer_id                 = azurerm_lb.example.id
+  protocol                        = "Tcp"
+  backend_address_pool_id = azurerm_lb_backend_address_pool.example.id
+  # Need to research this more; Default of 1024 errors built out
+  allocated_outbound_ports = 16
+
+    frontend_ip_configuration {
+      
+      name                = "PublicIPAddress"
+    }
+
 }

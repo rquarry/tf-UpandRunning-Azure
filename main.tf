@@ -97,20 +97,6 @@ resource "azurerm_public_ip" "vmip" {
 
 }
 
-# make NAT gateway for outbound access to internet
-resource "azurerm_nat_gateway" "my_nat" {
-  name                = "natgw"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  sku_name                = "Standard"
-}
-
-# Give nat gateway a public IP
-resource "azurerm_nat_gateway_public_ip_association" "my_nat_pubIP" {
-  nat_gateway_id = azurerm_nat_gateway.my_nat.id
-  public_ip_address_id = azurerm_public_ip.vmip[0].id
-}
-
 # NICS
 resource "azurerm_network_interface" "az_nic" {
   count               = 3
@@ -172,7 +158,8 @@ resource "azurerm_virtual_machine_scale_set_extension" "httpcmd" {
   virtual_machine_scale_set_id  = azurerm_linux_virtual_machine_scale_set.example.id
   publisher            = "Microsoft.Azure.Extensions"
   type                 = "CustomScript"
-  type_handler_version = "2.0"
+  type_handler_version = "2.1"
+  auto_upgrade_minor_version = true
 
   settings = <<SETTINGS
  {

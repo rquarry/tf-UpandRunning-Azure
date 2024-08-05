@@ -3,7 +3,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.0.2"
+      version = "~> 3.110.0"
     }
   }
 
@@ -97,20 +97,6 @@ resource "azurerm_public_ip" "vmip" {
 
 }
 
-# NICS
-resource "azurerm_network_interface" "az_nic" {
-  count               = 3
-  name                = "example-nic${count.index}"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-
-  ip_configuration {
-    name                          = "internal${count.index}"
-    subnet_id                     = azurerm_subnet.example.id
-    private_ip_address_allocation = "Dynamic"
-    primary                       = true
-  }
-}
 ### END OF NETWORK SECTION ####################################################
 
 resource "azurerm_linux_virtual_machine_scale_set" "example" {
@@ -122,7 +108,7 @@ resource "azurerm_linux_virtual_machine_scale_set" "example" {
   admin_username      = "adminuser"
 
   network_interface {
-    name = "internal_nic"
+    name = "nic"
     primary = true
   
     ip_configuration {
@@ -188,13 +174,6 @@ resource "azurerm_lb_backend_address_pool" "example" {
   name                           = "HTTPApplicationPool"
 }
 
-# assocaiate NICS with address pool
-resource "azurerm_network_interface_backend_address_pool_association" "example" {
-  count                   = 3
-  network_interface_id    = azurerm_network_interface.az_nic[count.index].id
-  ip_configuration_name = "internal${count.index}"
-  backend_address_pool_id = azurerm_lb_backend_address_pool.example.id 
-}
 
 resource "azurerm_lb_rule" "example" {
   loadbalancer_id                = azurerm_lb.example.id

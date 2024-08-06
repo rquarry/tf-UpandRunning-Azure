@@ -78,7 +78,6 @@ resource "azurerm_network_security_group" "networksg" {
     destination_address_prefix = "*"
   }
 
-
 }
 
 resource "azurerm_subnet_network_security_group_association" "nsga" {
@@ -86,10 +85,9 @@ resource "azurerm_subnet_network_security_group_association" "nsga" {
   network_security_group_id     = azurerm_network_security_group.networksg.id
 }
 
-# Make two public IPs, one for lb and one for NAT gateway
+# Make public IP load balancer
 resource "azurerm_public_ip" "vmip" {
-  count               = 2
-  name                = "pubip-${count.index}"
+  name                = "pubip"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   allocation_method   = "Static"
@@ -165,7 +163,7 @@ resource "azurerm_lb" "example" {
 
   frontend_ip_configuration {
     name                 = "PublicIPAddress"
-    public_ip_address_id = azurerm_public_ip.vmip[1].id
+    public_ip_address_id = azurerm_public_ip.vmip.id
   }
 }
 

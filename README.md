@@ -5,4 +5,10 @@ Completing the examples from [__Terraform Up &amp; Running__](https://www.terraf
 
 This configuration is a tab bit more complex in Azure, but is more or less as described in the book. 
 
-The [Azure Quickstart load balancer documents](https://learn.microsoft.com/en-us/azure/load-balancer/quickstart-load-balancer-standard-public-terraform) were a great way to validate the Terraform resources used, but they are always missing enough that hunting down further details in needed. For instance: Using [scale_sets](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine_scale_set) versus VMs requires the use of ```depends_on``` to make sure creation happens in the right order. As the book points out sometimes you need to provide "extra hints" to the instantiation process. 
+The [Azure Quickstart load balancer documents](https://learn.microsoft.com/en-us/azure/load-balancer/quickstart-load-balancer-standard-public-terraform) were a great way to validate the Terraform resources used, but they are always missing enough that hunting down further details in needed. For instance: Using [scale_sets](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine_scale_set) versus VMs requires the use of ```depends_on``` to make sure creation happens in the right order. As the book points out sometimes you need to provide "extra hints" to the instantiation process.
+
+## Azure CLI commands to check scale sets
+
+- az vmss get-instance-view --resource-group TFResourceGroupG --name example-machine
+- az vmss extension show --resource-group TFResourceGroupG --vmss-name example-machine --name busyboxhttpd
+- az vmss list-instances --resource-group TFResourceGroupG --name example-machine --query "[].{instanceId:instanceId, extension:resources[].id, extProvisioningState:resources[].provisioningState}"

@@ -19,8 +19,17 @@ resource "azurerm_resource_group" "cloud_storage" {
   location = "eastus2"
 }
 
+# Generate random value for the storage account name
+resource "random_string" "storage_account_name" {
+  length  = 16
+  lower   = true
+  numeric = false
+  special = false
+  upper   = false
+}
+
 resource "azurerm_storage_account" "persistent_storage" {
-  name                     = "persistentStorage"
+  name                     = random_string.storage_account_name.result
   resource_group_name      = azurerm_resource_group.cloud_storage.name
   location                 = azurerm_resource_group.cloud_storage.location
   account_tier             = "Standard"
@@ -29,13 +38,13 @@ resource "azurerm_storage_account" "persistent_storage" {
  }
 
  resource "azurerm_storage_container" "tfStorage" {
-  name = "tfStateStorage"
+  name = "tfstorage"
   storage_account_name = azurerm_storage_account.persistent_storage.name
   container_access_type = "private"
  }
 
  resource "azurerm_storage_blob" "tfStateStorage" {
-   name = "tfStateStorage"
+   name = "tfstatestorage"
    storage_account_name = azurerm_storage_account.persistent_storage.name
    storage_container_name = azurerm_storage_container.tfStorage.name
    type = "Block"

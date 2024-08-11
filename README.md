@@ -7,8 +7,17 @@ This configuration is a tab bit more complex in Azure, but is more or less as de
 
 The [Azure Quickstart load balancer documents](https://learn.microsoft.com/en-us/azure/load-balancer/quickstart-load-balancer-standard-public-terraform) were a great way to validate the Terraform resources used, but they are always missing enough that hunting down further details in needed. For instance: Using [scale_sets](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine_scale_set) versus VMs requires the use of ```depends_on``` to make sure creation happens in the right order. As the book points out sometimes you need to provide "extra hints" to the instantiation process.
 
-## Azure CLI commands to check scale sets
+### Azure CLI commands to check scale sets
 
 - az vmss get-instance-view --resource-group TFResourceGroupG --name example-machine
 - az vmss extension show --resource-group TFResourceGroupG --vmss-name example-machine --name busyboxhttpd
 - az vmss list-instances --resource-group TFResourceGroupG --name example-machine --query "[].{instanceId:instanceId, extension:resources[].id, extProvisioningState:resources[].provisioningState}"
+
+
+# Chapter 3
+
+The chapter material using an AWS S3 bucket for backend storage is simple, and the directions using the [Azure CLI credentials](https://developer.hashicorp.com/terraform/language/settings/backends/azurerm#backend-azure-ad-user-via-azure-cli) (that you are probably already using) is just about the same.
+
+Issue #6 will create a better solution.
+
+This chapter raises an interesting point about the use of Azure ResourceGroups. When you manage parts of your infrastructure separately with remote backends and data sources, should the RGs be separate or can they be the same name?

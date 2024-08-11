@@ -6,8 +6,15 @@ terraform {
       version = "~> 3.110.0"
     }
   }
+  
+  backend "azurerm" {
+    key = "storage/terraform.tfstate"
 
+    
+    
+  }
   required_version = ">= 1.1.0"
+
 }
 
 provider "azurerm" {
@@ -21,9 +28,9 @@ resource "azurerm_resource_group" "cloud_storage" {
 
 # Generate random value for the storage account name
 resource "random_string" "storage_account_name" {
-  length  = 16
+  length  = 24
   lower   = true
-  numeric = false
+  numeric = true
   special = false
   upper   = false
 }

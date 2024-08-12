@@ -16,8 +16,8 @@ The [Azure Quickstart load balancer documents](https://learn.microsoft.com/en-us
 
 # Chapter 3
 
-The chapter material using an AWS S3 bucket for backend storage is simple, and the directions using the [Azure CLI credentials](https://developer.hashicorp.com/terraform/language/settings/backends/azurerm#backend-azure-ad-user-via-azure-cli) (that you are probably already using) is just about the same.
+The chapter material using an AWS S3 bucket for backend storage is simple, and the directions using the [Azure CLI credentials](https://developer.hashicorp.com/terraform/language/settings/backends/azurerm#backend-azure-ad-user-via-azure-cli) (that you are probably already using) is just about the same. Issue #6 will create a better solution.
 
-Issue #6 will create a better solution.
+Per the book, all the backend details except individual keys were put into one .hcl file and called with in each init: `terraform init -backend-config=../backend.hcl`
 
 This chapter raises an interesting point about the use of Azure ResourceGroups. When you manage parts of your infrastructure separately with remote backends and data sources, should the RGs be separate or can they be the same name?
